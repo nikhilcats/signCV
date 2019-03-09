@@ -121,3 +121,27 @@ ds = image_label_ds.apply(
 ds = ds.batch(BATCH_SIZE)
 ds = ds.prefetch(buffer_size=AUTOTUNE)
 print(ds)
+
+mobile_net = tf.keras.applications.MobileNetV2(input_shape=(192, 192, 3), include_top=False)
+mobile_net.trainable=False
+
+def change_range(image,label):
+  return 2*image-1, label
+
+keras_ds = ds.map(change_range)
+
+# The dataset may take a few seconds to start, as it fills its shuffle buffer.
+image_batch, label_batch = next(iter(keras_ds))
+
+model = tf.keras.Sequential([
+  mobile_net,
+  tf.keras.layers.GlobalAveragePooling2D(),
+  tf.keras.layers.Dense(len(label_names))])
+
+logit_batch = model(image_batch).numpy()
+
+print("min logit:", logit_batch.min())
+print("max logit:", logit_batch.max())
+print()
+
+print("Shape:", logit_batch.shape)
