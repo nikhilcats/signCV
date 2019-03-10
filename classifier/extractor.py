@@ -1,31 +1,30 @@
+import cv2
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.models import load_model
 import tensorflow_hub as hub
 from tensorflow.keras import layers
-import cv2
+from tensorflow.keras.models import load_model
 
 cap = cv2.VideoCapture(0)
+print('camera')
+sess = tf.Session()
+sess.run(tf.initialize_all_variables())
 
-
-classifier_url = "https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/classification/2" #@param {type:"string"}
-feature_extractor_url = "https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/feature_vector/2" #@param {type:"string"}q
-model = load_model('sign_model.h5')
-
-IMAGE_SIZE = hub.get_expected_image_size(hub.Module(classifier_url))
-
-label_names = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y']
+print('initialized')
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 
+feature_extractor_url = "https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/feature_vector/2" #@param {type:"string"}
 
-while(True):
+model = load_model('sign_model.h5')
+
+while (True):
     # Capture frame-by-frame
     ret, frame = cap.read()
 
     ycrcb = cv2.cvtColor(frame, cv2.COLOR_BGR2YCrCb)
     if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+        breaktf.Session
 
     lower_skin = np.array([0, 133, 77])
     upper_skin = np.array([255, 173, 127])
@@ -50,7 +49,6 @@ while(True):
     median = cv2.medianBlur(dilation2, 5)
     ret, thresh = cv2.threshold(median, 127, 255, 0)
 
-
     # Find contours of the filtered frame
     contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -64,7 +62,7 @@ while(True):
     for i in range(len(contours)):
         cnt = contours[i]
         area = cv2.contourArea(cnt)
-        #stdev =
+        # stdev =
         if (area > max_area and True):
             max_area = area
             ci = i
@@ -72,51 +70,25 @@ while(True):
         # Largest area contour
     cnts = contours[ci]
 
-    # Find convex hull
-    hull = cv2.convexHull(cnts)
-
-    # Find convex defects
-    hull2 = cv2.convexHull(cnts, returnPoints=False)
-    defects = cv2.convexityDefects(cnts, hull2)
-
-    # Get defect points and draw them in the original image
-    FarDefect = []
-    for i in range(defects.shape[0]):
-        s, e, f, d = defects[i, 0]
-        start = tuple(cnts[s][0])
-        end = tuple(cnts[e][0])
-        far = tuple(cnts[f][0])
-        FarDefect.append(far)
-        cv2.line(frame, start, end, [0, 255, 0], 1)
-        cv2.circle(frame, far, 10, [100, 255, 255], 3)
-
-    # Find moments of the largest contour
-    moments = cv2.moments(cnts)
-
-    # Central mass of first order moments
-    if moments['m00'] != 0:
-        cx = int(moments['m10'] / moments['m00'])  # cx = M10/M00
-        cy = int(moments['m01'] / moments['m00'])  # cy = M01/M00
-    centerMass = (cx, cy)
-
     border = 50
     x, y, w, h = cv2.boundingRect(cnts)
-    cv2.rectangle(frame, (x-border, y-border), (x + w + border, y + h + border), (0, 255, 0), 2)
+    cv2.rectangle(frame, (x - border, y - border), (x + w + border, y + h + border), (0, 255, 0), 2)
 
+    crop_img = frame[y - border:y + h + border, x - border:x + w + border]
 
-    try:
-
-        print('e')
-        print(result.shape)
-        print('f')
-        cv2.putText(frame, 'a', (cx, cy), font, 4, (0, 255, 0), 2, cv2.LINE_AA)
-    except:
-        print('z')
+    img2 = cv2.resize(crop_img, dsize=(224, 224), interpolation=cv2.INTER_CUBIC)
+    np_image_data = np.asarray(img2).astype('float32') / 255
+    np_image = cv2.normalize(np_image_data.astype('float'), None, 0, 1, cv2.NORM_MINMAX)
+    np_final = np.expand_dims(np_image_data, axis=0)
+    print(np_final.shape)
+    result = model.predict(np_final)
+    print(result)
+    label = label_names[np.argmax(result, axis=-1)]
+    cv2.putText(frame, label, (cx, cy), font, 4, (0, 255, 0), 2, cv2.LINE_AA)
 
     cv2.imshow("test", frame)
-
+    break
 
 # When everything done, release the capture
 cap.release()
 cv2.destroyAllWindows()
-
