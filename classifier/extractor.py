@@ -1,15 +1,22 @@
 import numpy as np
 import tensorflow as tf
+from tensorflow.keras.models import load_model
+import tensorflow_hub as hub
+from tensorflow.keras import layers
 import cv2
 
 cap = cv2.VideoCapture(0)
 
 
-export_dir='./saved_models/1550962723/saved_model.pb'
-with tf.Session(graph=tf.Graph()) as sess:
-  tf.saved_model.loader.load(sess, [tag_constants.TRAINING], export_dir)
+classifier_url = "https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/classification/2" #@param {type:"string"}
+feature_extractor_url = "https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/feature_vector/2" #@param {type:"string"}q
+model = load_model('sign_model.h5')
 
+IMAGE_SIZE = hub.get_expected_image_size(hub.Module(classifier_url))
 
+label_names = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y']
+
+font = cv2.FONT_HERSHEY_SIMPLEX
 
 
 while(True):
@@ -96,7 +103,19 @@ while(True):
     x, y, w, h = cv2.boundingRect(cnts)
     cv2.rectangle(frame, (x-border, y-border), (x + w + border, y + h + border), (0, 255, 0), 2)
 
+
+    try:
+
+        print('e')
+        print(result.shape)
+        print('f')
+        cv2.putText(frame, 'a', (cx, cy), font, 4, (0, 255, 0), 2, cv2.LINE_AA)
+    except:
+        print('z')
+
     cv2.imshow("test", frame)
+
+
 # When everything done, release the capture
 cap.release()
 cv2.destroyAllWindows()
