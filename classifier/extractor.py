@@ -1,22 +1,28 @@
 import cv2
+import time
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
+import tensorflow.keras.backend as K
 import tensorflow_hub as hub
 from tensorflow.keras import layers
 from tensorflow.keras.models import load_model
 
 cap = cv2.VideoCapture(0)
 print('camera')
-sess = tf.Session()
-sess.run(tf.initialize_all_variables())
 
-print('initialized')
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 
 feature_extractor_url = "https://tfhub.dev/google/imagenet/mobilenet_v2_100_224/feature_vector/2" #@param {type:"string"}
 
-model = load_model('sign_model.h5')
+model = keras.models.load_model('sign_model.h5')
+sess = K.get_session()
+sess.run(tf.initialize_all_variables())
+
+label_names=['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y']
+
+print('initialized')
 
 while (True):
     # Capture frame-by-frame
@@ -24,7 +30,7 @@ while (True):
 
     ycrcb = cv2.cvtColor(frame, cv2.COLOR_BGR2YCrCb)
     if cv2.waitKey(1) & 0xFF == ord('q'):
-        breaktf.Session
+        break
 
     lower_skin = np.array([0, 133, 77])
     upper_skin = np.array([255, 173, 127])
@@ -75,20 +81,27 @@ while (True):
     cv2.rectangle(frame, (x - border, y - border), (x + w + border, y + h + border), (0, 255, 0), 2)
 
     crop_img = frame[y - border:y + h + border, x - border:x + w + border]
-
-    img2 = cv2.resize(crop_img, dsize=(224, 224), interpolation=cv2.INTER_CUBIC)
-    np_image_data = np.asarray(img2).astype('float32') / 255
-    np_image = cv2.normalize(np_image_data.astype('float'), None, 0, 1, cv2.NORM_MINMAX)
-    np_final = np.expand_dims(np_image_data, axis=0)
-    print(np_final.shape)
-    result = model.predict(np_final)
-    print(result)
-    label = label_names[np.argmax(result, axis=-1)]
-    cv2.putText(frame, label, (cx, cy), font, 4, (0, 255, 0), 2, cv2.LINE_AA)
+    try:
+        img2 = cv2.resize(crop_img, dsize=(224, 224), interpolation=cv2.INTER_CUBIC)
+        img3 = cv2.flip(img2, 1)
+        cv2.imshow("cropped", img3)
+        np_image_data = np.asarray(img3).astype('float32') / 255
+        np_image = cv2.normalize(np_image_data.astype('float'), None, 0, 1, cv2.NORM_MINMAX)
+        np_final = np.expand_dims(np_image_data, axis=0)
+        print(np_final.shape)
+        result = model.predict(np_final)
+        print(result.shape)
+        label = label_names[np.argmax(result[0], axis=-1)]
+        cv2.putText(frame, label, (x+int(w/2), y+int(h/2)), font, 4, (0, 255, 0), 2, cv2.LINE_AA)
+    except:
+        print('f')
 
     cv2.imshow("test", frame)
-    break
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
 # When everything done, release the capture
 cap.release()
 cv2.destroyAllWindows()
+
