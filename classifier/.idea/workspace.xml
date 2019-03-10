@@ -55,6 +55,7 @@
   <component name="FindInProjectRecents">
     <findStrings>
       <find>epoch</find>
+      <find>batch</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -113,7 +114,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.extractor">
+  <component name="RunManager" selected="Python.classifier">
     <configuration name="classifier" type="JupiterNotebook" factoryName="Jupyter Notebook">
       <module name="classifier" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -175,8 +176,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.extractor" />
         <item itemvalue="Python.classifier" />
+        <item itemvalue="Python.extractor" />
       </list>
     </recent_temporary>
   </component>

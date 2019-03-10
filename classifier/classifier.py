@@ -48,9 +48,6 @@ for image_batch,label_batch in image_data:
   print("Label batch shape: ", label_batch.shape)
   break
 
-features_extractor_layer = layers.Lambda(feature_extractor, input_shape=IMAGE_SIZE+[3])
-features_extractor_layer.trainable = False
-
 
 import tensorflow.keras.backend as K
 sess = K.get_session()
@@ -104,7 +101,7 @@ class CollectBatchStats(tf.keras.callbacks.Callback):
 steps_per_epoch = image_data.samples//image_data.batch_size
 batch_stats = CollectBatchStats()
 model.fit((item for item in image_data), epochs=5,
-                    batch_size=1000,
+                    steps_per_epoch=steps_per_epoch,
                     callbacks = [batch_stats])
 
 
