@@ -19,7 +19,7 @@ plt.interactive(False)
 
 from pathlib import *
 
-data_root = Path('/home/charles/Downloads/dataset5/A')
+data_root = Path('~/dataset5/A')
 
 image_generator = tf.keras.preprocessing.image.ImageDataGenerator(rescale=1/255)
 image_data = image_generator.flow_from_directory(str(data_root))
